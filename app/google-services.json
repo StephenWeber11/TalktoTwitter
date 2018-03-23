@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "362258992400",
+    "firebase_url": "https://talktotwitter-1867e.firebaseio.com",
+    "project_id": "talktotwitter-1867e",
+    "storage_bucket": "talktotwitter-1867e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:362258992400:android:d4738cadffedd5af",
+        "android_client_info": {
+          "package_name": "com.example.akhilajana.talktotwitter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "362258992400-evuhoc8bpn6akgfr0ires5s1bb9e7mat.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.akhilajana.talktotwitter",
+            "certificate_hash": "8f6c3c46f04a28ec820dce0636001e8e03bb7271"
+          }
+        },
+        {
+          "client_id": "362258992400-io7j4v3rk6hb455f9e95p33lenfa0geu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBEl64nUeICQc_Ac4E0lFTddM1UioeUKnQ"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "362258992400-io7j4v3rk6hb455f9e95p33lenfa0geu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
