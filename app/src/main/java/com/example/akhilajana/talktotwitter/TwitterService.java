@@ -15,7 +15,7 @@ import twitter4j.conf.ConfigurationBuilder;
 
 public class TwitterService extends AsyncTask<String, Void, String> {
 
-    Twitter twitter;
+    private Twitter twitter;
 
     @Override
     protected String doInBackground(String... params) {
@@ -35,7 +35,7 @@ public class TwitterService extends AsyncTask<String, Void, String> {
             }
 
             Query query = new Query();
-            query.setQuery("Nasa");
+            query.setQuery(params[0]);
             query.setLang("en");
             query.setCount(10);
 

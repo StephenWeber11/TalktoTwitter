@@ -2,11 +2,9 @@ package com.example.akhilajana.talktotwitter;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import android.speech.RecognitionListener;
-import android.speech.RecognizerIntent;
-import android.speech.SpeechRecognizer;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -128,6 +126,9 @@ public class MainActivity extends AppCompatActivity{
                 String result = userInput.substring(keywordIndex + 1);
                 dbRef.child(result).setValue(result);
                 keywordExists = true;
+
+                makeTwitterCall(result);
+
                 break;
             }
         }
@@ -190,6 +191,10 @@ public class MainActivity extends AppCompatActivity{
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
+    }
+
+    private void makeTwitterCall(String input){
+        new TwitterService().execute(input);
     }
 
 
