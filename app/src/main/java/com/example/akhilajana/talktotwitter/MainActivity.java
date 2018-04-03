@@ -23,6 +23,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity{
@@ -36,6 +37,15 @@ public class MainActivity extends AppCompatActivity{
     FirebaseAuth mAuth;
 
     ArrayList<String> inputList;
+
+    private static HashSet<String> keywords = new HashSet<>();
+
+    static {
+        keywords.add("about");
+        keywords.add("on");
+        keywords.add("from");
+        keywords.add("for");
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -111,33 +121,18 @@ public class MainActivity extends AppCompatActivity{
     }
 
     private void manipulateInput(String userInput) {
-
-        //show me tweets about, get me tweets on, show me tweets from
-        if (userInput.startsWith("show me tweets about"))
-        {
-            //remove the first 20 characters
-            String mod_Input = userInput.substring(21);
-
-            dbRef.child(mod_Input).setValue(mod_Input);
-
-        }
-        else if (userInput.startsWith("get me tweets on"))
-        {
-            //remove the first 20 characters
-            String mod_Input = userInput.substring(17);
-            dbRef.child(mod_Input).setValue(mod_Input);
-
+        boolean keywordExists = false;
+        for(String keyword : keywords) {
+            if(userInput.contains(keyword)) {
+                int keywordIndex = userInput.indexOf(keyword);
+                String result = userInput.substring(keywordIndex + 1);
+                dbRef.child(result).setValue(result);
+                keywordExists = true;
+                break;
+            }
         }
 
-        else if (userInput.startsWith("show me tweets from"))
-        {
-            //remove the first 20 characters
-            String mod_Input = userInput.substring(20);
-            dbRef.child(mod_Input).setValue(mod_Input);
-
-        }
-        else
-        {
+        if (!keywordExists) {
             Toast.makeText(this, "Make sure your query starts with Show me tweets about abcc", Toast.LENGTH_LONG).show();
         }
 
