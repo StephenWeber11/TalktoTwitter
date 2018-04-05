@@ -2,11 +2,9 @@ package com.example.akhilajana.talktotwitter;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import android.speech.RecognitionListener;
-import android.speech.RecognizerIntent;
-import android.speech.SpeechRecognizer;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -23,6 +21,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity{
@@ -36,6 +35,15 @@ public class MainActivity extends AppCompatActivity{
     FirebaseAuth mAuth;
 
     ArrayList<String> inputList;
+
+    private static HashSet<String> keywords = new HashSet<>();
+
+    static {
+        keywords.add("about");
+        keywords.add("on");
+        keywords.add("from");
+        keywords.add("for");
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -111,33 +119,21 @@ public class MainActivity extends AppCompatActivity{
     }
 
     private void manipulateInput(String userInput) {
+        boolean keywordExists = false;
+        for(String keyword : keywords) {
+            if(userInput.contains(keyword)) {
+                int keywordIndex = userInput.indexOf(keyword);
+                String result = userInput.substring(keywordIndex + 1);
+                dbRef.child(result).setValue(result);
+                keywordExists = true;
 
-        //show me tweets about, get me tweets on, show me tweets from
-        if (userInput.startsWith("show me tweets about"))
-        {
-            //remove the first 20 characters
-            String mod_Input = userInput.substring(21);
+                makeTwitterCall(result);
 
-            dbRef.child(mod_Input).setValue(mod_Input);
-
-        }
-        else if (userInput.startsWith("get me tweets on"))
-        {
-            //remove the first 20 characters
-            String mod_Input = userInput.substring(17);
-            dbRef.child(mod_Input).setValue(mod_Input);
-
+                break;
+            }
         }
 
-        else if (userInput.startsWith("show me tweets from"))
-        {
-            //remove the first 20 characters
-            String mod_Input = userInput.substring(20);
-            dbRef.child(mod_Input).setValue(mod_Input);
-
-        }
-        else
-        {
+        if (!keywordExists) {
             Toast.makeText(this, "Make sure your query starts with Show me tweets about abcc", Toast.LENGTH_LONG).show();
         }
 
@@ -195,6 +191,10 @@ public class MainActivity extends AppCompatActivity{
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
+    }
+
+    private void makeTwitterCall(String input){
+        new TwitterService().execute(input);
     }
 
 
