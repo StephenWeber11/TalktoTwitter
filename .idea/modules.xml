@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/TalktoTwitter.iml" filepath="$PROJECT_DIR$/.idea/TalktoTwitter.iml" />
+      <module fileurl="file://$PROJECT_DIR$/TalktoTwitter.iml" filepath="$PROJECT_DIR$/TalktoTwitter.iml" />
+      <module fileurl="file://C:\Dev\TalktoTwitter\.idea\TalktoTwitter.iml" filepath="C:\Dev\TalktoTwitter\.idea\TalktoTwitter.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

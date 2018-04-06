@@ -1,9 +1,15 @@
 package com.example.akhilajana.talktotwitter;
 
+import android.app.Activity;
 import android.os.AsyncTask;
+import android.util.Log;
+import android.widget.Toast;
+
+import java.util.List;
 
 import twitter4j.Query;
 import twitter4j.QueryResult;
+import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
@@ -13,12 +19,20 @@ import twitter4j.conf.ConfigurationBuilder;
  * Created by StephenWeber on 4/3/2018.
  */
 
-public class TwitterService extends AsyncTask<String, Void, String> {
+public class TwitterService extends AsyncTask<String, Void, List<Status>> {
 
     private Twitter twitter;
+    private Activity activity;
+    private IData iDataActivty;
+    private List<twitter4j.Status> tweets;
+
+    public TwitterService(Activity activity, IData iDataActivty) {
+        this.activity = activity;
+        this.iDataActivty = iDataActivty;
+    }
 
     @Override
-    protected String doInBackground(String... params) {
+    protected List<twitter4j.Status> doInBackground(String... params) {
         try {
 
             if (twitter == null) {
@@ -40,8 +54,13 @@ public class TwitterService extends AsyncTask<String, Void, String> {
             query.setCount(10);
 
             QueryResult result = twitter.search(query);
+            tweets = result.getTweets();
 
-            return result.toString();
+            Log.d("Twitter", "Twitter Result: " + result);
+            Log.d("Twitter", "TweetsList Size: " + tweets.size());
+
+
+            return tweets;
 
             /*
             --header 'authorization: OAuth oauth_consumer_key="consumer-key-for-app",
@@ -54,6 +73,19 @@ public class TwitterService extends AsyncTask<String, Void, String> {
             e.printStackTrace();
         }
 
-        return "EMPTY RESULT!";
+        return null;
+    }
+
+    @Override
+    protected void onPostExecute(List<twitter4j.Status> result) {
+        if(result == null || result.size() == 0) {
+            Toast.makeText(activity, "No Tweets Found", Toast.LENGTH_SHORT).show();
+        } else {
+            iDataActivty.setupData(tweets);
+        }
+    }
+
+    static public interface IData {
+        public void setupData(List<twitter4j.Status> result);
     }
 }

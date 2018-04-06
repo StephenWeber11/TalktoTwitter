@@ -22,13 +22,17 @@ import com.google.firebase.database.Query;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity{
+import twitter4j.Status;
+
+public class MainActivity extends AppCompatActivity implements TwitterService.IData{
 
     private TextView txtSpeechInput;
     private ImageButton btnSpeak;
     private final int REQ_CODE_SPEECH_INPUT = 100;
+    private List<Status> tweets;
 
     FirebaseDatabase database;
     DatabaseReference dbRef;
@@ -63,13 +67,14 @@ public class MainActivity extends AppCompatActivity{
         // hide the action bar
         //getActionBar().hide();
 
-        btnSpeak.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                promptSpeechInput();
-            }
-        });
+//        btnSpeak.setOnClickListener(new View.OnClickListener() {
+//
+//            @Override
+//            public void onClick(View v) {
+//                promptSpeechInput();
+//            }
+//        });
+        manipulateInput("on Nasa");
     }
 
     /** Showing google speech input dialog * */
@@ -123,11 +128,11 @@ public class MainActivity extends AppCompatActivity{
         for(String keyword : keywords) {
             if(userInput.contains(keyword)) {
                 int keywordIndex = userInput.indexOf(keyword);
-                String result = userInput.substring(keywordIndex + 1);
-                dbRef.child(result).setValue(result);
+                String result = userInput.substring(keywordIndex + keyword.length() + 1);
                 keywordExists = true;
 
                 makeTwitterCall(result);
+                dbRef.child(result).setValue(tweets);
 
                 break;
             }
@@ -194,8 +199,19 @@ public class MainActivity extends AppCompatActivity{
     }
 
     private void makeTwitterCall(String input){
-        new TwitterService().execute(input);
+        new TwitterService(MainActivity.this, MainActivity.this).execute(input);
     }
 
+    @Override
+    public void setupData(List<Status> tweets) {
+//        Intent intent = new Intent();
+//        startActivity(intent);
 
+        this.tweets = tweets;
+        addTweetsToFirebase(tweets);
+    }
+
+    public void addTweetsToFirebase(List<Status> tweets){
+        //Query query=dbRef.child("Tweets");
+    }
 }
