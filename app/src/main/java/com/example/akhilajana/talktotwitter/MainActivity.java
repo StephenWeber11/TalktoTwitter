@@ -211,10 +211,10 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
 
         this.tweets = tweets;
         Log.d("Tweets", tweets.size() + "");
-        int i = 0;
+        int i = 1;
         for(Status status : tweets) {
 
-            dbRef.child(result).child(i+"").setValue(status.getText());
+            dbRef.child(result).child(i+"").child("tweet").setValue(status.getText());
             i++;
         }
 
