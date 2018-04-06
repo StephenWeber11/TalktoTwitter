@@ -21,9 +21,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import twitter4j.Status;
 
@@ -33,6 +35,7 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
     private ImageButton btnSpeak;
     private final int REQ_CODE_SPEECH_INPUT = 100;
     private List<Status> tweets;
+    private String result;
 
     FirebaseDatabase database;
     DatabaseReference dbRef;
@@ -128,11 +131,10 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
         for(String keyword : keywords) {
             if(userInput.contains(keyword)) {
                 int keywordIndex = userInput.indexOf(keyword);
-                String result = userInput.substring(keywordIndex + keyword.length() + 1);
+                result = userInput.substring(keywordIndex + keyword.length() + 1);
                 keywordExists = true;
 
                 makeTwitterCall(result);
-                dbRef.child(result).setValue(tweets);
 
                 break;
             }
@@ -208,6 +210,15 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
 //        startActivity(intent);
 
         this.tweets = tweets;
+        Log.d("Tweets", tweets.size() + "");
+        int i = 0;
+        for(Status status : tweets) {
+
+            dbRef.child(result).child(i+"").setValue(status.getText());
+            i++;
+        }
+
+
         addTweetsToFirebase(tweets);
     }
 
