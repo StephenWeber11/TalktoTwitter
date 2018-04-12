@@ -24,9 +24,7 @@ public class TweetListItemHolder extends RecyclerView.ViewHolder {
         userName= (TextView) itemView.findViewById(R.id.user_name);
         tweetInfo= (TextView) itemView.findViewById(R.id.tweet_text);
         tweetTime= (TextView) itemView.findViewById(R.id.time_stamp);
-
         userProfilePic= (ImageView) itemView.findViewById(R.id.user_img);
-
         layout= (CardView) itemView.findViewById(R.id.tweetListItem);
 
 

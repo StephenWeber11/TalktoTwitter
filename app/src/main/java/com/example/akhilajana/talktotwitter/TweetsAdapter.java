@@ -37,6 +37,8 @@ public class TweetsAdapter extends RecyclerView.Adapter{
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
 
+        TweetListItemHolder holderObj = (TweetListItemHolder) holder;
+
 
     }
 
