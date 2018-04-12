@@ -43,13 +43,15 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
 
     ArrayList<String> inputList;
 
-    private static HashSet<String> keywords = new HashSet<>();
+    private static HashSet<String> thingKeywords = new HashSet<>();
+    private static HashSet<String> personKeywords = new HashSet<>();
 
     static {
-        keywords.add("about");
-        keywords.add("on");
-        keywords.add("from");
-        keywords.add("for");
+        thingKeywords.add(" about ");
+        thingKeywords.add(" on ");
+        thingKeywords.add(" for ");
+        personKeywords.add(" from ");
+        personKeywords.add(" by ");
     }
 
     @Override
@@ -77,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
 //                promptSpeechInput();
 //            }
 //        });
-        manipulateInput("on Nasa");
+        manipulateInput(" by Donald Trump");
     }
 
     /** Showing google speech input dialog * */
@@ -128,20 +130,33 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
 
     private void manipulateInput(String userInput) {
         boolean keywordExists = false;
-        for(String keyword : keywords) {
+        for(String keyword : thingKeywords) {
             if(userInput.contains(keyword)) {
                 int keywordIndex = userInput.indexOf(keyword);
-                result = userInput.substring(keywordIndex + keyword.length() + 1);
+                result = userInput.substring(keywordIndex + keyword.length());
                 keywordExists = true;
 
-                makeTwitterCall(result);
+                makeTwitterCall(result, Constants.THING_KEYWORD);
 
                 break;
             }
         }
+        if(!keywordExists) {
+            for (String keyword : personKeywords) {
+                if (userInput.contains(keyword)) {
+                    int keywordIndex = userInput.indexOf(keyword);
+                    result = userInput.substring(keywordIndex + keyword.length());
+                    keywordExists = true;
+
+                    makeTwitterCall(result, Constants.PERSON_KEYWORD);
+
+                    break;
+                }
+            }
+        }
 
         if (!keywordExists) {
-            Toast.makeText(this, "Make sure your query starts with Show me tweets about abcc", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Please Try Again", Toast.LENGTH_LONG).show();
         }
 
 
@@ -200,29 +215,21 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
         return true;
     }
 
-    private void makeTwitterCall(String input){
-        new TwitterService(MainActivity.this, MainActivity.this).execute(input);
+    private void makeTwitterCall(String input, String queryType){
+        new TwitterService(MainActivity.this, MainActivity.this, queryType).execute(input);
     }
 
     @Override
-    public void setupData(List<Status> tweets) {
-//        Intent intent = new Intent();
-//        startActivity(intent);
-
-        this.tweets = tweets;
-        Log.d("Tweets", tweets.size() + "");
-        int i = 1;
-        for(Status status : tweets) {
-
-            dbRef.child(result).child(i+"").child("tweet").setValue(status.getText());
-            i++;
-        }
-
-
+    public void setupData(TweetsList tweetsList) {
+        ArrayList<Tweet> tweets = tweetsList.getTweets();
         addTweetsToFirebase(tweets);
     }
 
-    public void addTweetsToFirebase(List<Status> tweets){
-        //Query query=dbRef.child("Tweets");
+    public void addTweetsToFirebase(ArrayList<Tweet> tweets){
+        int i = 1;
+        for(Tweet tweet : tweets) {
+            dbRef.child(result).child(i+"").child("tweet").setValue(tweet.getTweetContent());
+            i++;
+        }
     }
 }
