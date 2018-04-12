@@ -208,12 +208,7 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
         });
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
+
 
     private void makeTwitterCall(String input, String queryType){
         new TwitterService(MainActivity.this, MainActivity.this, queryType).execute(input);
