@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_gradient"
     android:orientation="vertical" >
 
     <TextView
@@ -28,10 +27,10 @@
 
         <ImageButton
             android:id="@+id/btnSpeak"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="160dp"
+            android:layout_height="160dp"
             android:background="@null"
-            android:src="@drawable/ico_mic" />
+            android:src="@drawable/mic" />
 
         <TextView
             android:layout_width="wrap_content"
