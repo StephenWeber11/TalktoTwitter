@@ -21,14 +21,21 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
-public class MainActivity extends AppCompatActivity{
+import twitter4j.Status;
+
+public class MainActivity extends AppCompatActivity implements TwitterService.IData{
 
     private TextView txtSpeechInput;
     private ImageButton btnSpeak;
     private final int REQ_CODE_SPEECH_INPUT = 100;
+    private List<Status> tweets;
+    private String result;
 
     FirebaseDatabase database;
     DatabaseReference dbRef;
@@ -36,13 +43,15 @@ public class MainActivity extends AppCompatActivity{
 
     ArrayList<String> inputList;
 
-    private static HashSet<String> keywords = new HashSet<>();
+    private static HashSet<String> thingKeywords = new HashSet<>();
+    private static HashSet<String> personKeywords = new HashSet<>();
 
     static {
-        keywords.add("about");
-        keywords.add("on");
-        keywords.add("from");
-        keywords.add("for");
+        thingKeywords.add(" about ");
+        thingKeywords.add(" on ");
+        thingKeywords.add(" for ");
+        personKeywords.add(" from ");
+        personKeywords.add(" by ");
     }
 
     @Override
@@ -63,13 +72,14 @@ public class MainActivity extends AppCompatActivity{
         // hide the action bar
         //getActionBar().hide();
 
-        btnSpeak.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                promptSpeechInput();
-            }
-        });
+//        btnSpeak.setOnClickListener(new View.OnClickListener() {
+//
+//            @Override
+//            public void onClick(View v) {
+//                promptSpeechInput();
+//            }
+//        });
+        manipulateInput(" by Donald Trump");
     }
 
     /** Showing google speech input dialog * */
@@ -120,21 +130,33 @@ public class MainActivity extends AppCompatActivity{
 
     private void manipulateInput(String userInput) {
         boolean keywordExists = false;
-        for(String keyword : keywords) {
+        for(String keyword : thingKeywords) {
             if(userInput.contains(keyword)) {
                 int keywordIndex = userInput.indexOf(keyword);
-                String result = userInput.substring(keywordIndex + 1);
-                dbRef.child(result).setValue(result);
+                result = userInput.substring(keywordIndex + keyword.length());
                 keywordExists = true;
 
-                makeTwitterCall(result);
+                makeTwitterCall(result, Constants.THING_KEYWORD);
 
                 break;
             }
         }
+        if(!keywordExists) {
+            for (String keyword : personKeywords) {
+                if (userInput.contains(keyword)) {
+                    int keywordIndex = userInput.indexOf(keyword);
+                    result = userInput.substring(keywordIndex + keyword.length());
+                    keywordExists = true;
+
+                    makeTwitterCall(result, Constants.PERSON_KEYWORD);
+
+                    break;
+                }
+            }
+        }
 
         if (!keywordExists) {
-            Toast.makeText(this, "Make sure your query starts with Show me tweets about abcc", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Please Try Again", Toast.LENGTH_LONG).show();
         }
 
 
@@ -186,9 +208,28 @@ public class MainActivity extends AppCompatActivity{
         });
     }
 
-    private void makeTwitterCall(String input){
-        new TwitterService().execute(input);
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
     }
 
+    private void makeTwitterCall(String input, String queryType){
+        new TwitterService(MainActivity.this, MainActivity.this, queryType).execute(input);
+    }
 
+    @Override
+    public void setupData(TweetsList tweetsList) {
+        ArrayList<Tweet> tweets = tweetsList.getTweets();
+        addTweetsToFirebase(tweets);
+    }
+
+    public void addTweetsToFirebase(ArrayList<Tweet> tweets){
+        int i = 1;
+        for(Tweet tweet : tweets) {
+            dbRef.child(result).child(i+"").child("tweet").setValue(tweet.getTweetContent());
+            i++;
+        }
+    }
 }

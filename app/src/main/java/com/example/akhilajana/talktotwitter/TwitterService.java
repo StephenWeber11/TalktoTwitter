@@ -1,9 +1,16 @@
 package com.example.akhilajana.talktotwitter;
 
+import android.app.Activity;
 import android.os.AsyncTask;
+import android.util.Log;
+import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import twitter4j.Query;
 import twitter4j.QueryResult;
+import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
@@ -13,12 +20,22 @@ import twitter4j.conf.ConfigurationBuilder;
  * Created by StephenWeber on 4/3/2018.
  */
 
-public class TwitterService extends AsyncTask<String, Void, String> {
+public class TwitterService extends AsyncTask<String, Void, List<Status>> {
 
     private Twitter twitter;
+    private Activity activity;
+    private IData iDataActivty;
+    private List<twitter4j.Status> mTweets;
+    private String queryType;
+
+    public TwitterService(Activity activity, IData iDataActivty, String queryType) {
+        this.activity = activity;
+        this.iDataActivty = iDataActivty;
+        this.queryType = queryType;
+    }
 
     @Override
-    protected String doInBackground(String... params) {
+    protected List<twitter4j.Status> doInBackground(String... params) {
         try {
 
             if (twitter == null) {
@@ -33,27 +50,66 @@ public class TwitterService extends AsyncTask<String, Void, String> {
                 twitter = new TwitterFactory(cb.build()).getInstance();
                 twitter.getOAuth2Token();
             }
-
             Query query = new Query();
-            query.setQuery(params[0]);
             query.setLang("en");
             query.setCount(10);
 
-            QueryResult result = twitter.search(query);
+            QueryResult result;
+            if(queryType.equals(Constants.PERSON_KEYWORD)) {
+                query.setQuery("source: " + params[0]);
+                result = twitter.search(query);
+                mTweets = result.getTweets();
 
-            return result.toString();
+            } else {
+                query.setQuery(params[0]);
+                result = twitter.search(query);
+                mTweets = result.getTweets();
 
-            /*
-            --header 'authorization: OAuth oauth_consumer_key="consumer-key-for-app",
-            oauth_nonce="generated-nonce", oauth_signature="generated-signature",
-            oauth_signature_method="HMAC-SHA1", oauth_timestamp="generated-timestamp",
-            oauth_token="access-token-for-authed-user", oauth_version="1.0"'
-            */
+
+                Log.d("Twitter", "Twitter Result: " + result);
+            }
+
+            Log.d("Twitter", "TweetsList Size: " + mTweets.size());
+
+            return mTweets;
 
         } catch (TwitterException e) {
             e.printStackTrace();
         }
 
-        return "EMPTY RESULT!";
+        return null;
+    }
+
+    @Override
+    protected void onPostExecute(List<twitter4j.Status> result) {
+        if(result == null || result.size() == 0) {
+            Toast.makeText(activity, "No Tweets Found", Toast.LENGTH_SHORT).show();
+        } else {
+            TweetsList tweetsList = new TweetsList();
+            tweetsList.setTweets(mapResult(mTweets));
+            iDataActivty.setupData(tweetsList);
+        }
+    }
+
+    public interface IData {
+        void setupData(TweetsList tweetsList);
+    }
+
+    protected ArrayList<Tweet> mapResult(List<twitter4j.Status> result) {
+        ArrayList<Tweet> tweets = new ArrayList<>(result.size());
+        for(twitter4j.Status status : result) {
+            Tweet tweet = new Tweet();
+            tweet.setCreatedAt(status.getCreatedAt());
+            tweet.setTweetContent(status.getText());
+
+            User user = new User();
+            user.setLocation(status.getUser().getLocation());
+            user.setName(status.getUser().getName());
+
+            tweet.setUser(user);
+            tweets.add(tweet);
+        }
+
+        return tweets;
     }
 }
