@@ -2,6 +2,7 @@ package com.example.akhilajana.talktotwitter;
 
 import android.app.Activity;
 import android.os.AsyncTask;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -99,12 +100,13 @@ public class TwitterService extends AsyncTask<String, Void, List<Status>> {
         ArrayList<Tweet> tweets = new ArrayList<>(result.size());
         for(twitter4j.Status status : result) {
             Tweet tweet = new Tweet();
-            tweet.setCreatedAt(status.getCreatedAt());
+            tweet.setCreatedAt(status.getCreatedAt().toString());
             tweet.setTweetContent(status.getText());
 
             User user = new User();
             user.setLocation(status.getUser().getLocation());
             user.setName(status.getUser().getName());
+            user.setImageUrl(status.getUser().getProfileImageURL());
 
             tweet.setUser(user);
             tweets.add(tweet);

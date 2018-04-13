@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -63,6 +64,8 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
         txtSpeechInput = (TextView) findViewById(R.id.txtSpeechInput);
         btnSpeak = (ImageButton) findViewById(R.id.btnSpeak);
 
+
+
         database = FirebaseDatabase.getInstance();
         mAuth = FirebaseAuth.getInstance();
         dbRef=database.getReference();
@@ -119,7 +122,13 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
                     Log.d("Yo","Result is: "+result);
 
                     txtSpeechInput.setText(result.get(0));
-                    manipulateInput(result.get(0));
+
+
+                    if("FirebaseResult" != null){
+                        manipulateInput(result.get(0));
+                    } else {
+                        buildIntent(new ArrayList<Tweet>());
+                    }
 
                 }
                 break;
@@ -218,13 +227,25 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
     public void setupData(TweetsList tweetsList) {
         ArrayList<Tweet> tweets = tweetsList.getTweets();
         addTweetsToFirebase(tweets);
+        buildIntent(tweets);
     }
 
     public void addTweetsToFirebase(ArrayList<Tweet> tweets){
         int i = 1;
         for(Tweet tweet : tweets) {
             dbRef.child(result).child(i+"").child("tweet").setValue(tweet.getTweetContent());
+            dbRef.child(result).child(i+"").child("timestamp").setValue(tweet.getCreatedAt());
+            dbRef.child(result).child(i+"").child("userName").setValue(tweet.getUser().getName());
+            dbRef.child(result).child(i+"").child("userPic").setValue(tweet.getUser().getImageUrl());
             i++;
         }
+    }
+
+    private void buildIntent(ArrayList<Tweet> tweets) {
+        Intent intent = new Intent(MainActivity.this, ResultActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("TweetKey", tweets);
+        intent.putExtra("BundleKey", bundle);
+        startActivity(intent);
     }
 }

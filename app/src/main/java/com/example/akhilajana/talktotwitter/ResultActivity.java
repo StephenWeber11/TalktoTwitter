@@ -1,9 +1,12 @@
 package com.example.akhilajana.talktotwitter;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+
+import java.util.ArrayList;
 
 public class ResultActivity extends AppCompatActivity
 {
@@ -16,9 +19,13 @@ public class ResultActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_result);
 
+        Intent intent = getIntent();
+        Bundle bundle = intent.getBundleExtra("BundleKey");
+        ArrayList<Tweet> tweets = (ArrayList<Tweet>) bundle.getSerializable("TweetKey");
+
         tweetsListView = findViewById(R.id.tweetsList);
 
-        adapter = new TweetsAdapter(null);
+        adapter = new TweetsAdapter(tweets, this);
         tweetsListView.setAdapter(adapter);
         LinearLayoutManager horizontalLayoutManager
                 = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);

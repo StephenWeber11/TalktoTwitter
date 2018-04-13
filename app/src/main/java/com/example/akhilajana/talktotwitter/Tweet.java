@@ -1,22 +1,23 @@
 package com.example.akhilajana.talktotwitter;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * Created by Stephen on 4/5/2018.
  */
 
-public class Tweet {
+public class Tweet implements Serializable{
 
-    Date createdAt;
+    String createdAt;
     User user;
     String tweetContent;
 
-    public Date getCreatedAt() {
+    public String getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
     }
 
