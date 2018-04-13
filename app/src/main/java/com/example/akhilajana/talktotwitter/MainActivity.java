@@ -5,9 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -20,13 +18,12 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import twitter4j.Status;
 
@@ -36,13 +33,13 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
     private ImageButton btnSpeak;
     private final int REQ_CODE_SPEECH_INPUT = 100;
     private List<Status> tweets;
-    private String result;
+    private String searchKeyword;
 
     FirebaseDatabase database;
     DatabaseReference dbRef;
     FirebaseAuth mAuth;
 
-    ArrayList<String> inputList;
+    ArrayList<Tweet> firebaseTweetList;
 
     private static HashSet<String> thingKeywords = new HashSet<>();
     private static HashSet<String> personKeywords = new HashSet<>();
@@ -60,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setTitle("Talk to Twitter");
 
         txtSpeechInput = (TextView) findViewById(R.id.txtSpeechInput);
         btnSpeak = (ImageButton) findViewById(R.id.btnSpeak);
@@ -70,19 +68,26 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
         mAuth = FirebaseAuth.getInstance();
         dbRef=database.getReference();
 
-        inputList = new ArrayList<>();
+        firebaseTweetList = new ArrayList<>();
 
         // hide the action bar
         //getActionBar().hide();
 
-//        btnSpeak.setOnClickListener(new View.OnClickListener() {
-//
-//            @Override
-//            public void onClick(View v) {
+        btnSpeak.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
 //                promptSpeechInput();
-//            }
-//        });
-        manipulateInput(" by Donald Trump");
+                searchKeyword = "Nasa";
+                getInputData();
+                if(firebaseTweetList == null || firebaseTweetList.size() == 0){
+                    manipulateInput(" by Donald Trump");
+                } else {
+                    buildIntent(firebaseTweetList);
+                }
+            }
+        });
+
     }
 
     /** Showing google speech input dialog * */
@@ -123,11 +128,12 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
 
                     txtSpeechInput.setText(result.get(0));
 
-
-                    if("FirebaseResult" != null){
+                    searchKeyword = result.get(0);
+                    getInputData();
+                    if(firebaseTweetList == null || firebaseTweetList.size() == 0){
                         manipulateInput(result.get(0));
                     } else {
-                        buildIntent(new ArrayList<Tweet>());
+                        buildIntent(firebaseTweetList);
                     }
 
                 }
@@ -142,10 +148,10 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
         for(String keyword : thingKeywords) {
             if(userInput.contains(keyword)) {
                 int keywordIndex = userInput.indexOf(keyword);
-                result = userInput.substring(keywordIndex + keyword.length());
+                searchKeyword = userInput.substring(keywordIndex + keyword.length());
                 keywordExists = true;
 
-                makeTwitterCall(result, Constants.THING_KEYWORD);
+                makeTwitterCall(searchKeyword, Constants.THING_KEYWORD);
 
                 break;
             }
@@ -154,10 +160,10 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
             for (String keyword : personKeywords) {
                 if (userInput.contains(keyword)) {
                     int keywordIndex = userInput.indexOf(keyword);
-                    result = userInput.substring(keywordIndex + keyword.length());
+                    searchKeyword = userInput.substring(keywordIndex + keyword.length());
                     keywordExists = true;
 
-                    makeTwitterCall(result, Constants.PERSON_KEYWORD);
+                    makeTwitterCall(searchKeyword, Constants.PERSON_KEYWORD);
 
                     break;
                 }
@@ -171,51 +177,57 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
 
     }
 
-    private void getInputData()
-    {
-        Query query=dbRef.child("User_Input");
-        query.addChildEventListener(new ChildEventListener() {
+    private void getInputData() {
+        Query query=dbRef.child(searchKeyword);
+        query.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s)
-            {
-                String inputObj=dataSnapshot.getValue(String.class);
-                inputList.add(inputObj);
-                Log.d("listSize",inputList.size()+"");
-
-                //Replace 1st element if list size exceeds 3
-                if(inputList.size()>3)
-                {
-                    inputList.remove(0);
-                }
-
-                //adapter.notifyDataSetChanged();
-
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ArrayList<Tweet> tweetObj = dataSnapshot.getValue(ArrayList.class);
+                firebaseTweetList = new ArrayList<>(tweetObj);
+                Log.d("listSize",firebaseTweetList.size()+"");
             }
 
             @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s)
-            {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s)
-            {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError)
-            {
+            public void onCancelled(DatabaseError databaseError) {
 
             }
         });
-    }
+
+
+//        query.addChildEventListener(new ChildEventListener() {
+//        @Override
+//        public void onChildAdded(DataSnapshot dataSnapshot, String s)
+//        {
+//            Tweet tweetObj = dataSnapshot.getValue(Tweet.class);
+//            firebaseTweetList.add(tweetObj);
+//            Log.d("listSize",firebaseTweetList.size()+"");
+//
+//        }
+//
+//        @Override
+//        public void onChildChanged(DataSnapshot dataSnapshot, String s)
+//        {
+//
+//        }
+//
+//        @Override
+//        public void onChildRemoved(DataSnapshot dataSnapshot) {
+//
+//        }
+//
+//        @Override
+//        public void onChildMoved(DataSnapshot dataSnapshot, String s)
+//        {
+//
+//        }
+//
+//        @Override
+//        public void onCancelled(DatabaseError databaseError)
+//        {
+//
+//        }
+//    });
+}
 
 
 
@@ -233,10 +245,10 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
     public void addTweetsToFirebase(ArrayList<Tweet> tweets){
         int i = 1;
         for(Tweet tweet : tweets) {
-            dbRef.child(result).child(i+"").child("tweet").setValue(tweet.getTweetContent());
-            dbRef.child(result).child(i+"").child("timestamp").setValue(tweet.getCreatedAt());
-            dbRef.child(result).child(i+"").child("userName").setValue(tweet.getUser().getName());
-            dbRef.child(result).child(i+"").child("userPic").setValue(tweet.getUser().getImageUrl());
+            dbRef.child(searchKeyword).child(i+"").child("tweet").setValue(tweet.getTweetContent());
+            dbRef.child(searchKeyword).child(i+"").child("timestamp").setValue(tweet.getCreatedAt());
+            dbRef.child(searchKeyword).child(i+"").child("userName").setValue(tweet.getUser().getName());
+            dbRef.child(searchKeyword).child(i+"").child("userPic").setValue(tweet.getUser().getImageUrl());
             i++;
         }
     }

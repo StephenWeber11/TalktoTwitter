@@ -18,6 +18,7 @@ public class ResultActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_result);
+        setTitle("Talk to Twitter");
 
         Intent intent = getIntent();
         Bundle bundle = intent.getBundleExtra("BundleKey");
