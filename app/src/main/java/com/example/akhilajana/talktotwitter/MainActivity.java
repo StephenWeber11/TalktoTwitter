@@ -32,12 +32,11 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
     private TextView txtSpeechInput;
     private ImageButton btnSpeak;
     private final int REQ_CODE_SPEECH_INPUT = 100;
-    private List<Status> tweets;
     private String searchKeyword;
 
-    FirebaseDatabase database;
-    DatabaseReference dbRef;
-    FirebaseAuth mAuth;
+    private FirebaseDatabase database;
+    private DatabaseReference dbRef;
+    private FirebaseAuth mAuth;
 
     ArrayList<Tweet> firebaseTweetList;
 
@@ -61,8 +60,6 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
         txtSpeechInput = (TextView) findViewById(R.id.txtSpeechInput);
         btnSpeak = (ImageButton) findViewById(R.id.btnSpeak);
 
-
-        searchKeyword = "Donald Trump";
         database = FirebaseDatabase.getInstance();
         mAuth = FirebaseAuth.getInstance();
         dbRef=database.getReference();
@@ -126,7 +123,6 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
 
                     txtSpeechInput.setText(result.get(0));
 
-                    searchKeyword = result.get(0);
                     if(firebaseTweetList == null || firebaseTweetList.size() == 0){
                         manipulateInput(result.get(0));
                     } else {
