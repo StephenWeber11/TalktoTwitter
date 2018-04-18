@@ -99,16 +99,12 @@ public class TwitterService extends AsyncTask<String, Void, List<Status>> {
     protected ArrayList<Tweet> mapResult(List<twitter4j.Status> result) {
         ArrayList<Tweet> tweets = new ArrayList<>(result.size());
         for(twitter4j.Status status : result) {
-            Tweet tweet = new Tweet();
-            tweet.setCreatedAt(status.getCreatedAt().toString());
-            tweet.setTweetContent(status.getText());
-
             User user = new User();
             user.setLocation(status.getUser().getLocation());
             user.setName(status.getUser().getName());
             user.setImageUrl(status.getUser().getProfileImageURL());
 
-            tweet.setUser(user);
+            Tweet tweet = new Tweet(status.getCreatedAt().toString(), user, status.getText());
             tweets.add(tweet);
         }
 

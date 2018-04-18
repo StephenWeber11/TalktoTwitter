@@ -41,15 +41,14 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
 
     ArrayList<Tweet> firebaseTweetList;
 
-    private static HashSet<String> thingKeywords = new HashSet<>();
-    private static HashSet<String> personKeywords = new HashSet<>();
+    private static HashSet<String> keywords = new HashSet<>();
 
     static {
-        thingKeywords.add(" about ");
-        thingKeywords.add(" on ");
-        thingKeywords.add(" for ");
-        personKeywords.add(" from ");
-        personKeywords.add(" by ");
+        keywords.add(" about ");
+        keywords.add(" on ");
+        keywords.add(" for ");
+        keywords.add(" from ");
+        keywords.add(" by ");
     }
 
     @Override
@@ -63,12 +62,11 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
         btnSpeak = (ImageButton) findViewById(R.id.btnSpeak);
 
 
-
+        searchKeyword = "Donald Trump";
         database = FirebaseDatabase.getInstance();
         mAuth = FirebaseAuth.getInstance();
         dbRef=database.getReference();
-
-        firebaseTweetList = new ArrayList<>();
+        getInputData();
 
         // hide the action bar
         //getActionBar().hide();
@@ -77,15 +75,15 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
 
             @Override
             public void onClick(View v) {
-//                promptSpeechInput();
-                searchKeyword = "Nasa";
-                getInputData();
-                if(firebaseTweetList == null || firebaseTweetList.size() == 0){
-                    manipulateInput(" by Donald Trump");
-                } else {
-                    buildIntent(firebaseTweetList);
-                }
-            }
+                promptSpeechInput();
+
+            /*if(firebaseTweetList == null || firebaseTweetList.size() == 0){
+                manipulateInput(" by Donald Trump");
+            } else {
+                buildIntent(firebaseTweetList);
+            }*/
+
+        }
         });
 
     }
@@ -129,7 +127,6 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
                     txtSpeechInput.setText(result.get(0));
 
                     searchKeyword = result.get(0);
-                    getInputData();
                     if(firebaseTweetList == null || firebaseTweetList.size() == 0){
                         manipulateInput(result.get(0));
                     } else {
@@ -145,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
 
     private void manipulateInput(String userInput) {
         boolean keywordExists = false;
-        for(String keyword : thingKeywords) {
+        for(String keyword : keywords) {
             if(userInput.contains(keyword)) {
                 int keywordIndex = userInput.indexOf(keyword);
                 searchKeyword = userInput.substring(keywordIndex + keyword.length());
@@ -156,35 +153,24 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
                 break;
             }
         }
-        if(!keywordExists) {
-            for (String keyword : personKeywords) {
-                if (userInput.contains(keyword)) {
-                    int keywordIndex = userInput.indexOf(keyword);
-                    searchKeyword = userInput.substring(keywordIndex + keyword.length());
-                    keywordExists = true;
-
-                    makeTwitterCall(searchKeyword, Constants.PERSON_KEYWORD);
-
-                    break;
-                }
-            }
-        }
 
         if (!keywordExists) {
             Toast.makeText(this, "Please Try Again", Toast.LENGTH_LONG).show();
         }
 
-
     }
 
     private void getInputData() {
-        Query query=dbRef.child(searchKeyword);
-        query.addValueEventListener(new ValueEventListener() {
+        dbRef.child("keywords").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                ArrayList<Tweet> tweetObj = dataSnapshot.getValue(ArrayList.class);
-                firebaseTweetList = new ArrayList<>(tweetObj);
-                Log.d("listSize",firebaseTweetList.size()+"");
+                firebaseTweetList = new ArrayList<>();
+                for(DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
+                    for(DataSnapshot entry : postSnapshot.getChildren()) {
+                        Tweet tweet = entry.getValue(Tweet.class);
+                        firebaseTweetList.add(tweet);
+                    }
+                }
             }
 
             @Override
@@ -193,40 +179,6 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
             }
         });
 
-
-//        query.addChildEventListener(new ChildEventListener() {
-//        @Override
-//        public void onChildAdded(DataSnapshot dataSnapshot, String s)
-//        {
-//            Tweet tweetObj = dataSnapshot.getValue(Tweet.class);
-//            firebaseTweetList.add(tweetObj);
-//            Log.d("listSize",firebaseTweetList.size()+"");
-//
-//        }
-//
-//        @Override
-//        public void onChildChanged(DataSnapshot dataSnapshot, String s)
-//        {
-//
-//        }
-//
-//        @Override
-//        public void onChildRemoved(DataSnapshot dataSnapshot) {
-//
-//        }
-//
-//        @Override
-//        public void onChildMoved(DataSnapshot dataSnapshot, String s)
-//        {
-//
-//        }
-//
-//        @Override
-//        public void onCancelled(DatabaseError databaseError)
-//        {
-//
-//        }
-//    });
 }
 
 
@@ -243,13 +195,11 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
     }
 
     public void addTweetsToFirebase(ArrayList<Tweet> tweets){
-        int i = 1;
+
+        int index = 0;
         for(Tweet tweet : tweets) {
-            dbRef.child(searchKeyword).child(i+"").child("tweet").setValue(tweet.getTweetContent());
-            dbRef.child(searchKeyword).child(i+"").child("timestamp").setValue(tweet.getCreatedAt());
-            dbRef.child(searchKeyword).child(i+"").child("userName").setValue(tweet.getUser().getName());
-            dbRef.child(searchKeyword).child(i+"").child("userPic").setValue(tweet.getUser().getImageUrl());
-            i++;
+            dbRef.child("keywords").child(searchKeyword).child("tweet " + index).setValue(new Tweet(tweet.getCreatedAt(), tweet.getUser(), tweet.getTweetContent()));
+            index++;
         }
     }
 

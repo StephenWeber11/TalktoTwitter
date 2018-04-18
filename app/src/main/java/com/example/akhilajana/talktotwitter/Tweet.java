@@ -13,6 +13,14 @@ public class Tweet implements Serializable{
     User user;
     String tweetContent;
 
+    public Tweet () {}
+
+    public Tweet(String createdAt, User user, String tweetContent) {
+        this.createdAt = createdAt;
+        this.user = user;
+        this.tweetContent = tweetContent;
+    }
+
     public String getCreatedAt() {
         return createdAt;
     }
