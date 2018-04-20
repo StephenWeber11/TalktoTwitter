@@ -21,6 +21,8 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -32,7 +34,7 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
     private TextView txtSpeechInput;
     private ImageButton btnSpeak;
     private final int REQ_CODE_SPEECH_INPUT = 100;
-    private String searchKeyword;
+    private String searchKeyword = "";
 
     private FirebaseDatabase database;
     private DatabaseReference dbRef;
@@ -49,6 +51,8 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
         keywords.add(" from ");
         keywords.add(" by ");
     }
+
+    private ArrayList<Keyword> tweetKeywords;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -73,14 +77,7 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
             @Override
             public void onClick(View v) {
                 promptSpeechInput();
-
-            /*if(firebaseTweetList == null || firebaseTweetList.size() == 0){
-                manipulateInput(" by Donald Trump");
-            } else {
-                buildIntent(firebaseTweetList);
-            }*/
-
-        }
+            }
         });
 
     }
@@ -123,11 +120,23 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
 
                     txtSpeechInput.setText(result.get(0));
 
-                    if(firebaseTweetList == null || firebaseTweetList.size() == 0){
-                        manipulateInput(result.get(0));
+                    manipulateInput(result.get(0));
+
+                    if(tweetKeywords != null) {
+                        for (Keyword key : tweetKeywords) {
+                            if (key.getKeyword().equals(searchKeyword)) {
+                                firebaseTweetList = key.getTweets();
+                                break;
+                            }
+                        }
+                    }
+
+                    if(firebaseTweetList == null || firebaseTweetList.size() == 0) {
+                        makeTwitterCall(searchKeyword, Constants.THING_KEYWORD);
                     } else {
                         buildIntent(firebaseTweetList);
                     }
+
 
                 }
                 break;
@@ -144,8 +153,6 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
                 searchKeyword = userInput.substring(keywordIndex + keyword.length());
                 keywordExists = true;
 
-                makeTwitterCall(searchKeyword, Constants.THING_KEYWORD);
-
                 break;
             }
         }
@@ -155,29 +162,6 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
         }
 
     }
-
-    private void getInputData() {
-        dbRef.child("keywords").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                firebaseTweetList = new ArrayList<>();
-                for(DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
-                    for(DataSnapshot entry : postSnapshot.getChildren()) {
-                        Tweet tweet = entry.getValue(Tweet.class);
-                        firebaseTweetList.add(tweet);
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-}
-
-
 
     private void makeTwitterCall(String input, String queryType){
         new TwitterService(MainActivity.this, MainActivity.this, queryType).execute(input);
@@ -191,12 +175,7 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
     }
 
     public void addTweetsToFirebase(ArrayList<Tweet> tweets){
-
-        int index = 0;
-        for(Tweet tweet : tweets) {
-            dbRef.child("keywords").child(searchKeyword).child("tweet " + index).setValue(new Tweet(tweet.getCreatedAt(), tweet.getUser(), tweet.getTweetContent()));
-            index++;
-        }
+        dbRef.child("keywords").push().setValue(new Keyword(searchKeyword, tweets));
     }
 
     private void buildIntent(ArrayList<Tweet> tweets) {
@@ -205,5 +184,43 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
         bundle.putSerializable("TweetKey", tweets);
         intent.putExtra("BundleKey", bundle);
         startActivity(intent);
+    }
+
+    private void getInputData() {
+        dbRef.child("keywords").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                firebaseTweetList = new ArrayList<>();
+                tweetKeywords = new ArrayList<>();
+
+                Calendar cal = Calendar.getInstance();
+                int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
+                String dayOfMonthStr = " " + String.valueOf(dayOfMonth) + " ";
+
+                for (DataSnapshot entry : dataSnapshot.getChildren()) {
+                    Keyword tweetKeyword = entry.getValue(Keyword.class);
+
+                    boolean isOutOfDate = false;
+                    for(Tweet tweet : tweetKeyword.getTweets()) {
+                        if(!tweet.getCreatedAt().contains(dayOfMonthStr)) {
+                            isOutOfDate = true;
+                        }
+                    }
+
+                    if(!isOutOfDate) {
+                        tweetKeywords.add(tweetKeyword);
+                    } else {
+                        dbRef.child("keywords").child(entry.getKey()).removeValue();
+                    }
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
     }
 }

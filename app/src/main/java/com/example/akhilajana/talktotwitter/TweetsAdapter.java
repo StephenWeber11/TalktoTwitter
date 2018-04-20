@@ -41,16 +41,24 @@ public class TweetsAdapter extends RecyclerView.Adapter{
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         TweetListItemHolder holderObj = (TweetListItemHolder) holder;
-        tweet = tweetsList.get(position);
-        holderObj.userName.setText(tweet.getUser().getName());
-        holderObj.tweetInfo.setText(tweet.getTweetContent());
-        holderObj.tweetTime.setText(tweet.getCreatedAt());
 
-        Picasso.with(activity).load(tweet.getUser().getImageUrl()).into(((TweetListItemHolder) holder).userProfilePic);
+        if (tweetsList != null) {
+            tweet = tweetsList.get(position);
+            holderObj.userName.setText(tweet.getUser().getName());
+            holderObj.tweetInfo.setText(tweet.getTweetContent());
+            holderObj.tweetTime.setText(tweet.getCreatedAt());
+
+            Picasso.with(activity).load(tweet.getUser().getImageUrl()).into(((TweetListItemHolder) holder).userProfilePic);
+
+        }
     }
 
     @Override
     public int getItemCount() {
+        if(tweetsList == null) {
+            return 0;
+        }
+
         return tweetsList.size();
     }
 }
