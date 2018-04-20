@@ -11,6 +11,7 @@
         android:id="@+id/tweetsList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="#f0f5f5"
         android:scrollbars="vertical" />
 
 </android.widget.LinearLayout>

@@ -43,9 +43,11 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="100"
+                    android:fontFamily="@font/cabin"
                     android:inputType="textPersonName"
                     android:text="user name"
-                    android:textSize="18sp" />
+                    android:textColor="@color/colorPrimaryDark"
+                    android:textSize="20sp" />
 
                 <TextView
                     android:id="@+id/time_stamp"
@@ -53,7 +55,8 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="100"
                     android:inputType="time"
-                    android:text="00:00" />
+                    android:text="00:00"
+                    android:textColor="@color/cardview_dark_background" />
             </LinearLayout>
 
         </LinearLayout>
@@ -64,6 +67,7 @@
             android:layout_height="33dp"
 
             android:layout_weight="50"
+            android:fontFamily="@font/cabin"
             android:text="tweet data is present here"
             android:textColor="@android:color/primary_text_light" />
 
