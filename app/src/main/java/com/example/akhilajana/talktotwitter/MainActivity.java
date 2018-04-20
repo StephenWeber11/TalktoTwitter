@@ -76,6 +76,7 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
 
             @Override
             public void onClick(View v) {
+                firebaseTweetList = null;
                 promptSpeechInput();
             }
         });
@@ -158,7 +159,7 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
         }
 
         if (!keywordExists) {
-            Toast.makeText(this, "Please Try Again", Toast.LENGTH_LONG).show();
+            searchKeyword = userInput;
         }
 
     }
