@@ -5,11 +5,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -67,10 +71,7 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
         database = FirebaseDatabase.getInstance();
         mAuth = FirebaseAuth.getInstance();
         dbRef=database.getReference();
-        getInputData();
-
-        // hide the action bar
-        //getActionBar().hide();
+        getFirebaseData();
 
         btnSpeak.setOnClickListener(new View.OnClickListener() {
 
@@ -187,7 +188,7 @@ public class MainActivity extends AppCompatActivity implements TwitterService.ID
         startActivity(intent);
     }
 
-    private void getInputData() {
+    private void getFirebaseData() {
         dbRef.child("keywords").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
